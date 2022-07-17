@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Repository finder</title>
+    <script type="importmap">
+            {
+                "imports": {
+                "vue": "https://unpkg.com/vue@3/dist/vue.esm-browser.js"
+                }
+            }
+        </script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <link href="assets/style/style.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-0evHe/X+R7YkIZDRvuzKMRqM+OrBnVFBL6DOitfPri4tjfHxaWutUpFmBp4vmVor" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css"
+        integrity="sha512-KfkfwYDsLkIlwQp6LFnl8zNdLGxu9YAA1QvwINks4PhcElQSvqcyVLLD9aMhXd13uQjoXtEKNosOWaZqXgel0g=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+
+<body>
+    <div id="app" v-cloak>
+        <div class="container search-bar">
+            <input v-model="organizationName" type="text" class="form-control" id="companyName" name="companyName"
+                placeholder="Nazwa organizacji">
+            <div @click="findRepositories()" class="btn btn-primary">Pokaz repozytoria</div>
+        </div>
+        <div class="container">
+            <table v-if="repositories.length > 0 && !error" class="table">
+                <thead>
+                    <tr>
+                        <th @click="sortRepositoriesByName" scope="col" style="width:40%" class="name-header">
+                            Nazwa
+                            <i v-if="activeSort == 'organizationName' && nameAsc" class="fa-solid fa-caret-down"></i>
+                            <i v-if="activeSort == 'organizationName' && !nameAsc" class="fa-solid fa-caret-up"></i>
+                        </th>
+                        <th class="text-center" scope="col" style="width:40%">
+                            Fork
+                        </th>
+                        <th @click="sortRepositoriesByContributors" scope="col" style="width:20%" class="contributors-header text-center">
+                            Contributors
+                            <i v-if="activeSort == 'contributors' && contributorsAsc"class="fa-solid fa-caret-down"></i>
+                            <i v-if="activeSort == 'contributors' && !contributorsAsc" class="fa-solid fa-caret-up"></i>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="repository in repositories">
+                        <td>
+                            <a :href="repository.url">%{ repository.name }%</a>
+                        </td>
+                        <td class="text-center" v-if="repository.isFork">
+                            <a :href="repository.sourceUrl">%{ repository.sourceName }%</a>
+                        </td>
+                        <td class="text-center" v-else>
+                            <p class="text-danger">Nie</p>
+                        </td>
+                        <td class="text-center">
+                            <p>%{ repository.contributorsNumber }%</p>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <div v-if="error" class="text-center">
+                <p class="text-danger">%{ errorMessage }%</p>
+            </div>
+            <div v-if="loader" class="loader"></div>
+        </div>
+    </div>
+</body>
+<script type="module">
+    import { createApp } from 'vue';
+    import mainComponent from '/assets/js/main.js';
+    createApp(mainComponent).mount('#app');
+</script>
+
+</html>
