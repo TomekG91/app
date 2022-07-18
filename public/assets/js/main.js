@@ -6,8 +6,8 @@ export default {
         return {
             organizationName: "",
             repositories: [],
-            nameAsc: false,
-            contributorsAsc: false,
+            isSortByNameAsc: false,
+            isSortByContributorsAsc: false,
             activeSort: "",
             loader: false,
             error: false,
@@ -45,25 +45,25 @@ export default {
         },
         sortRepositoriesByName() {
             this.activeSort = "organizationName";
+            this.isSortByNameAsc = !this.isSortByNameAsc;
             this.repositories.sort((a, b) => {
-                if (this.nameAsc) {
+                if (this.isSortByNameAsc) {
                     return a.name.localeCompare(b.name);
                 } else {
                     return b.name.localeCompare(a.name);
                 }
             })
-            this.nameAsc = !this.nameAsc;
         },
         sortRepositoriesByContributors() {
-            this.activeSort = "contributors"
+            this.activeSort = "contributors";
+            this.isSortByContributorsAsc = !this.isSortByContributorsAsc;
             this.repositories.sort((a, b) => {
-                if (this.contributorsAsc) {
+                if (this.isSortByContributorsAsc) {
                     return a.contributorsNumber - b.contributorsNumber;
                 } else {
                     return b.contributorsNumber - a.contributorsNumber;
                 }
             })
-            this.contributorsAsc = !this.contributorsAsc;
         },
         resetError() {
             this.error = false;

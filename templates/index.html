@@ -33,16 +33,16 @@
                     <tr>
                         <th @click="sortRepositoriesByName" scope="col" style="width:40%" class="name-header">
                             Nazwa
-                            <i v-if="activeSort == 'organizationName' && nameAsc" class="fa-solid fa-caret-down"></i>
-                            <i v-if="activeSort == 'organizationName' && !nameAsc" class="fa-solid fa-caret-up"></i>
+                            <i v-if="activeSort == 'organizationName' && !isSortByNameAsc" class="fa-solid fa-caret-down"></i>
+                            <i v-if="activeSort == 'organizationName' && isSortByNameAsc" class="fa-solid fa-caret-up"></i>
                         </th>
                         <th class="text-center" scope="col" style="width:40%">
                             Fork
                         </th>
                         <th @click="sortRepositoriesByContributors" scope="col" style="width:20%" class="contributors-header text-center">
                             Contributors
-                            <i v-if="activeSort == 'contributors' && contributorsAsc"class="fa-solid fa-caret-down"></i>
-                            <i v-if="activeSort == 'contributors' && !contributorsAsc" class="fa-solid fa-caret-up"></i>
+                            <i v-if="activeSort == 'contributors' && !isSortByContributorsAsc"class="fa-solid fa-caret-down"></i>
+                            <i v-if="activeSort == 'contributors' && isSortByContributorsAsc" class="fa-solid fa-caret-up"></i>
                         </th>
                     </tr>
                 </thead>
