@@ -19,7 +19,11 @@ export default {
             this.loader = true;
             this.repositories = [];
             this.resetError();
-            await axios.post(`${APP_API_PROTOCOL}://${APP_API_URL}:${APP_API_PORT}/repositories`, { name: this.organizationName })
+            await axios({
+                    url : `${APP_API_PROTOCOL}://${APP_API_URL}:${APP_API_PORT}/repositories`,
+                    method: 'post',
+                    data : { name: this.organizationName }, 
+                })
                 .then(response => {
                     if (response.data.repositoriesInfo.length == 0) {
                         this.setError("Organizacja nie posiada publicznych repozytoriow");
@@ -29,12 +33,7 @@ export default {
                 })
                 .catch(error => {
                     if (error.response) {
-                        if (error.response.data) {
-                            console.log(error.response.data);
-                            this.setError(error.response.data.errorMessage);
-                        } else {
-                            this.setError("Niespodziewany blad serwera");
-                        }
+                        this.setError("Niespodziewany blad serwera");
                     } else if (error.request) {
                         this.setError("Brak polaczenia z serwerem");
                     } else {
