@@ -10,12 +10,12 @@ use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Symfony\Component\Serializer\Normalizer\ArrayDenormalizer;
-use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 
 class RepositoryService
 {
     private $client;
     private $githubApiToken;
+    
 
     public function __construct(HttpClientInterface $client, $githubApiToken)
     {
@@ -24,10 +24,12 @@ class RepositoryService
     }
 
     public function getRepositoriesInfo($organizationName)
-    {
+    {   
+        $serializer = new Serializer([new ObjectNormalizer(), new ArrayDenormalizer()], [new JsonEncoder()]);
+
         $response = $this->client->request(
             'GET',
-            sprintf('https://api.github.com/orgs/%s/repos', $organizationName),
+            sprintf('https://api.github.com/orgs/%s/repos?type=all&per_page=100', $organizationName),
             ["auth_bearer" => $this->githubApiToken]
         );
 
@@ -37,11 +39,23 @@ class RepositoryService
             return $this->handleGithubApiResponseError($response);
         }
 
-        $encoders = [new JsonEncoder()];
-        $normalizers = [new ObjectNormalizer(), new ArrayDenormalizer()];
-        $serializer = new Serializer($normalizers, $encoders);
-
         $githubApiRepositories = $serializer->deserialize($responseContent, 'App\Models\GithubApiRepository[]', 'json');
+
+        while($nextPageUrl = $this->getNextPageUrlFromHeaders($response->getHeaders()))
+        {
+            $response = $this->client->request(
+                'GET',
+                $nextPageUrl,
+                ["auth_bearer" => $this->githubApiToken]
+            );
+    
+            try {
+                $responseContent = $response->getContent();
+                array_push($githubApiRepositories, ...$serializer->deserialize($responseContent, 'App\Models\GithubApiRepository[]', 'json'));
+            } catch (Exception $e) {
+                return $this->handleGithubApiResponseError($response);
+            }
+        }
 
         $repositoriesInfo = [];
 
@@ -51,7 +65,6 @@ class RepositoryService
             $repositoryInfo->name = $githubApiRepository->name;
             $repositoryInfo->url = $githubApiRepository->html_url;
             $repositoryInfo->isFork = $githubApiRepository->fork;
-
 
             if ($githubApiRepository->fork) {
                 $response = $this->client->request(
@@ -153,5 +166,20 @@ class RepositoryService
             throw  new \UnexpectedValueException("Unexpected format of link header");
         }
         return (int)$match[1];
+    }
+
+    private function getNextPageUrlFromHeaders($headers)
+    {   
+        $linkHeader = $this->getValueFromHeaders('link', $headers);
+
+        if(!$linkHeader) {
+            return null;
+        }
+
+        preg_match('/.*<(?<nextPageUrl>.*)>; rel="next"/', $linkHeader, $match);
+        if (!isset($match['nextPageUrl'])) {
+            return null;
+        }
+        return $match['nextPageUrl'];
     }
 }
